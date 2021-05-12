@@ -5,3 +5,4 @@ Four - As three but FIFO depth 16
 Five - Same as three but HBM ports split out
 Six - Chunking up domain into sub-chunks to reduce BRAM usage
 Seven - Connected to DRAM
+Eight - 4 kernels at 250Mhz
