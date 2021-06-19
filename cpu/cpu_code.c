@@ -9,7 +9,7 @@ void advect_v_flow_field_c(double*, double*, double*, double* , double*, double*
 void advect_w_flow_field_c(double*, double*, double*, double* , double*, double*, double, double,int, int, int, int, int, int, int);
 static long getEpoch();
 static double getTiming(long, long);
-static long long getTotalFLOPS(int, int, int);
+static long long getTotalFLOPS(int, int, int, int);
 
 void advect_th_field_c(double * sth, double * th, double * u, double * v, double * w, double * tzc1, double * tzc2,
                         double cx, double cy, int size_x, int size_y, int size_z, int start_x, int end_x, int start_y, int end_y) {
@@ -42,7 +42,7 @@ void advect_th_field_c(double * sth, double * th, double * u, double * v, double
 }
 
 int main(int argc, char * argv[]) {
-	int size_x=atoi(argv[1]), size_y=atoi(argv[2]), size_z=64;
+	int size_x=atoi(argv[1]), size_y=atoi(argv[2]), iterations=atoi(argv[3]), size_z=64;
 	int hs=2;
 	int start_x=hs, end_x=size_x+hs, start_y=hs, end_y=size_y+hs;
 	int field_x=size_x+(hs*2), field_y=size_y+(hs*2);
@@ -60,11 +60,13 @@ int main(int argc, char * argv[]) {
 	printf("Advecting over %d threads with compute domain X=%d Y=%d Z=%d, total domain size of X=%d Y=%d Z=%d\n", omp_get_max_threads(), size_x, size_y, size_z, field_x, field_y, size_z);
 
 	long start=getEpoch();
-	advect_flow_fields_c(su, sv, sw, u, v, w, tzc1, tzc2, tzd1, tzd2, 1.0, 2.0, field_x, field_y, size_z, start_x, end_x, start_y, end_y);
+  for (int i=0;i<iterations;i++) {
+	  advect_flow_fields_c(su, sv, sw, u, v, w, tzc1, tzc2, tzd1, tzd2, 1.0, 2.0, field_x, field_y, size_z, start_x, end_x, start_y, end_y);
+  }
 	double overalltime=getTiming(getEpoch(), start);
   printf("Runtime is %f ms\n", overalltime);
 	
-	double kernelFLOPS=(getTotalFLOPS(size_x, size_y, size_z) / (overalltime / 1000)) / 1024 / 1024 / 1024;
+	double kernelFLOPS=(getTotalFLOPS(size_x, size_y, size_z, iterations) / (overalltime / 1000)) / 1024 / 1024 / 1024;
   printf("Overall GFLOPS %.2f\n", kernelFLOPS);
 	return 0;
 }
@@ -172,7 +174,7 @@ static double getTiming(long end_time, long start_time) {
   return (end_time - start_time) / 1.0e3 ;
 }
 
-static long long getTotalFLOPS(int x_size, int y_size, int z_size) {
+static long long getTotalFLOPS(int x_size, int y_size, int z_size, int iterations) {
   long long total_elements_xu=x_size * y_size * (z_size-1);
   long long lid_elements=x_size * y_size;
   long long non_lid_elements=total_elements_xu-lid_elements;
@@ -180,6 +182,6 @@ static long long getTotalFLOPS(int x_size, int y_size, int z_size) {
 
   long long advectxu_flops=(lid_elements * 17) + (non_lid_elements * 21);
   long long advectw_flops=total_elements_w * 21;
-  return (advectxu_flops * 2) + advectw_flops;
+  return ((advectxu_flops * 2) + advectw_flops) * iterations;
 }
 
