@@ -5,15 +5,9 @@
 #include <CL/cl2.hpp>
 #include <CL/cl_ext_xilinx.h>
 
-#define X_SIZE 2048
-#define Y_SIZE 2048
 #define Z_SIZE 64
 
 #define NUM_KERNELS 1
-
-//#define X_SIZE 8
-//#define Y_SIZE 73
-//#define Z_SIZE 8
 
 typedef double REAL_TYPE;
 
@@ -32,23 +26,30 @@ cl::Buffer *tzc1_buffer[NUM_KERNELS], *tzc2_buffer[NUM_KERNELS], *tzd1_buffer[NU
 REAL_TYPE *u_data[NUM_KERNELS], *v_data[NUM_KERNELS], *w_data[NUM_KERNELS], *su_data[NUM_KERNELS], *sv_data[NUM_KERNELS], *sw_data[NUM_KERNELS], *tzc1_data, *tzc2_data, *tzd1_data, *tzd2_data;
 REAL_TYPE tcx, tcy;
 
-int size_in_x=X_SIZE+4, size_in_y=Y_SIZE+4, size_in_z=Z_SIZE;
-
-static void init_device(char*);
+static void init_device(char*, unsigned int, unsigned int, unsigned int);
 static void execute_entire_kernel_on_device(cl::Event*, cl::Event*, cl::Event*);
 static float getMaxTimeOfComponent(cl::Event*);
 static float getTimeOfComponent(cl::Event&);
-static void initiateData();
-static long long getTotalFLOPS();
+static void initiateData(unsigned int, unsigned int, unsigned int);
+static long long getTotalFLOPS(unsigned int, unsigned int);
 static char * getKernelName(const char*, int, char*);
 
 int main(int argc, char * argv[]) {      
   cl::Event copyOnEvent[NUM_KERNELS], kernelExecutionEvent[NUM_KERNELS], copyOffEvent[NUM_KERNELS];
 
-  printf("Advecting with compute domain X=%d Y=%d Z=%d, total domain size of X=%d Y=%d Z=%d\n", X_SIZE, Y_SIZE, Z_SIZE, size_in_x, size_in_y, size_in_z);
+  if (argc != 4) {
+    printf("Requires name of bitstream, size in X and size in Y as arguments\n");
+    return -1;
+  }
 
-  initiateData();
-  init_device(argv[1]);
+  unsigned int x_size=atoi(argv[2]);
+  unsigned int y_size=atoi(argv[3]);
+  unsigned int size_in_x=x_size+4, size_in_y=y_size+4, size_in_z=Z_SIZE;
+
+  printf("Advecting with compute domain X=%d Y=%d Z=%d, total domain size of X=%d Y=%d Z=%d\n", x_size, y_size, Z_SIZE, size_in_x, size_in_y, size_in_z);
+
+  initiateData(size_in_x, size_in_y, size_in_z);
+  init_device(argv[1], size_in_x, size_in_y, size_in_z);
 
   execute_entire_kernel_on_device(copyOnEvent, kernelExecutionEvent, copyOffEvent);
 #ifdef DISPLAYRESULTS  
@@ -61,8 +62,8 @@ int main(int argc, char * argv[]) {
   
   printf("Execution complete, total runtime : %.3f ms, (%.3f ms xfer on, %.3f ms execute, %.3f ms xfer off)\n", copyOnTime+kernelTime+copyOffTime, copyOnTime, kernelTime, copyOffTime);  
 
-  double totalFLOPS=(getTotalFLOPS() / ((copyOnTime+kernelTime+copyOffTime) /1000)) / 1024 / 1024 / 1024;
-  double kernelFLOPS=(getTotalFLOPS() / (kernelTime / 1000)) / 1024 / 1024 / 1024;
+  double totalFLOPS=(getTotalFLOPS(x_size, y_size) / ((copyOnTime+kernelTime+copyOffTime) /1000)) / 1024 / 1024 / 1024;
+  double kernelFLOPS=(getTotalFLOPS(x_size, y_size) / (kernelTime / 1000)) / 1024 / 1024 / 1024;
   printf("Overall GFLOPS %.2f, kernel GFLOPS %.2f\n", totalFLOPS, kernelFLOPS);
 
   for (int i=0;i<NUM_KERNELS;i++) {
@@ -85,11 +86,11 @@ int main(int argc, char * argv[]) {
   return EXIT_SUCCESS;
 }
 
-static long long getTotalFLOPS() {
-  long long total_elements_xu=X_SIZE * Y_SIZE * (Z_SIZE-1);
-  long long lid_elements=X_SIZE * Y_SIZE;
+static long long getTotalFLOPS(unsigned int x_size, unsigned int y_size) {
+  long long total_elements_xu=x_size * y_size * (Z_SIZE-1);
+  long long lid_elements=x_size * y_size;
   long long non_lid_elements=total_elements_xu-lid_elements;
-  long long total_elements_w=X_SIZE * Y_SIZE * (Z_SIZE-2);
+  long long total_elements_w=x_size * y_size * (Z_SIZE-2);
 
   long long advectxu_flops=(lid_elements * 17) + (non_lid_elements * 21);
   long long advectw_flops=total_elements_w * 21;
@@ -113,7 +114,7 @@ static float getTimeOfComponent(cl::Event & event) {
   return (tstop-tstart)/1.E6;
 }
 
-static void initiateData() {
+static void initiateData(unsigned int size_in_x, unsigned int size_in_y, unsigned int size_in_z) {
   unsigned int partial_kernel_x_size=size_in_x/NUM_KERNELS;
   size_t cube_size=partial_kernel_x_size * size_in_y * size_in_z;
 
@@ -174,7 +175,7 @@ static void execute_entire_kernel_on_device(cl::Event * copyOnEvents, cl::Event 
   OCL_CHECK(err, err = command_queue->finish());
 }
 
-static void init_device(char * binary_filename) {
+static void init_device(char * binary_filename, unsigned int size_in_x, unsigned int size_in_y, unsigned int size_in_z) {
   cl_int err;  
 
   // Identify the device and create the appropriate context
