@@ -15,7 +15,7 @@ static void stream_to_aie_for_advect_w_chunk(hls::stream<struct stencil_data>&, 
     REAL_TYPE [MAX_Z_SIZE], REAL_TYPE [MAX_Z_SIZE], double, double, unsigned int, unsigned int, unsigned int,
     hls::stream<qdma_axis<128,0,0,0> >&, hls::stream<qdma_axis<128,0,0,0> >&);
 
-ap_uint<32> pack_val(double value) {
+ap_uint<32> pack_val(REAL_TYPE value) {
   float v=(float) value;
   return *((ap_uint<32>*) &(v));
 }

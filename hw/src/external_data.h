@@ -107,9 +107,9 @@ void write_data(hls::stream<qdma_axis<32,0,0,0> > & su_result_stream, hls::strea
   }
 }
 
-static float get_float(qdma_axis<32,0,0,0> d) {
+static REAL_TYPE get_float(qdma_axis<32,0,0,0> d) {
   ap_uint<32> data=d.data;
-  return *(float*)(&data);
+  return *(REAL_TYPE*)(&data);
 }
 
 static void write_y_and_z(hls::stream<qdma_axis<32,0,0,0> > & su_result_stream, hls::stream<qdma_axis<32,0,0,0> > & sv_result_stream, hls::stream<qdma_axis<32,0,0,0> > & sw_result_stream,
