@@ -9,7 +9,7 @@
 
 #define NUM_KERNELS 1
 
-typedef double REAL_TYPE;
+typedef float REAL_TYPE;
 
 #define PAGESIZE 4096
 
