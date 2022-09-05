@@ -12,7 +12,7 @@ struct stencil_data {
 #define EXTERNAL_DATA_WIDTH 16
 
 struct packaged_double {
-  double data[EXTERNAL_DATA_WIDTH];
+  REAL_TYPE data[EXTERNAL_DATA_WIDTH];
 };
 
 #endif

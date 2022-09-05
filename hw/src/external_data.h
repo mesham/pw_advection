@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include "utils.h"
 
+const int load_write_pipeline_ii=EXTERNAL_DATA_WIDTH;
+
 static void load_y_and_z(struct packaged_double*, struct packaged_double*, struct packaged_double*, hls::stream<REAL_TYPE>&,
     hls::stream<REAL_TYPE>&,hls::stream<REAL_TYPE>&, unsigned int, unsigned int, unsigned int);
 static void write_y_and_z(hls::stream<qdma_axis<32,0,0,0> > &, hls::stream<qdma_axis<32,0,0,0> > &, hls::stream<qdma_axis<32,0,0,0> > &, struct packaged_double*,
@@ -59,7 +61,7 @@ static void load_y_and_z(struct packaged_double * input_u, struct packaged_doubl
   // Now grab the majority of values in the domain
   read_data_loop:
   for (unsigned int i=start_point;i<main_retrieve_part;i++) {
-#pragma HLS PIPELINE II=8
+#pragma HLS PIPELINE II=load_write_pipeline_ii
     struct packaged_double element_u=input_u[i];
     unpack_u_loop:
     for (int j=0;j<EXTERNAL_DATA_WIDTH;j++) out_u_stream.write(element_u.data[j]);
@@ -137,17 +139,17 @@ static void write_y_and_z(hls::stream<qdma_axis<32,0,0,0> > & su_result_stream, 
 
   write_data_loop:
   for (unsigned int i=start_point;i<main_retrieve_part;i++) {
-#pragma HLS PIPELINE II=8
+#pragma HLS PIPELINE II=load_write_pipeline_ii
     struct packaged_double element_su;
-    for (int j=0;j<8;j++) element_su.data[j]=get_float(su_result_stream.read());
+    for (int j=0;j<EXTERNAL_DATA_WIDTH;j++) element_su.data[j]=get_float(su_result_stream.read());
     output_su[i]=element_su;
 
     struct packaged_double element_sv;
-    for (int j=0;j<8;j++) element_sv.data[j]=get_float(sv_result_stream.read());
+    for (int j=0;j<EXTERNAL_DATA_WIDTH;j++) element_sv.data[j]=get_float(sv_result_stream.read());
     output_sv[i]=element_sv;
 
     struct packaged_double element_sw;
-    for (int j=0;j<8;j++) element_sw.data[j]=get_float(sw_result_stream.read());
+    for (int j=0;j<EXTERNAL_DATA_WIDTH;j++) element_sw.data[j]=get_float(sw_result_stream.read());
     output_sw[i]=element_sw;
   }
 
