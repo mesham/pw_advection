@@ -1,11 +1,13 @@
 #include "definitions.h"
 #include <hls_stream.h>
+#include <ap_axi_sdata.h>
+#include <ap_int.h>
 #include <stdio.h>
 #include "utils.h"
 
 static void load_y_and_z(struct packaged_double*, struct packaged_double*, struct packaged_double*, hls::stream<REAL_TYPE>&,
     hls::stream<REAL_TYPE>&,hls::stream<REAL_TYPE>&, unsigned int, unsigned int, unsigned int);
-static void write_y_and_z(hls::stream<REAL_TYPE>&, hls::stream<REAL_TYPE>&, hls::stream<REAL_TYPE>&, struct packaged_double*,
+static void write_y_and_z(hls::stream<qdma_axis<32,0,0,0> > &, hls::stream<qdma_axis<32,0,0,0> > &, hls::stream<qdma_axis<32,0,0,0> > &, struct packaged_double*,
     struct packaged_double*, struct packaged_double*, unsigned int, unsigned int, unsigned int);
 
 void load_data(struct packaged_double * input_u, struct packaged_double * input_v, struct packaged_double * input_w, hls::stream<REAL_TYPE> & out_u_stream,
@@ -88,7 +90,7 @@ static void load_y_and_z(struct packaged_double * input_u, struct packaged_doubl
   }
 }
 
-void write_data(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REAL_TYPE> & in_sv_stream, hls::stream<REAL_TYPE> & in_sw_stream,
+void write_data(hls::stream<qdma_axis<32,0,0,0> > & su_result_stream, hls::stream<qdma_axis<32,0,0,0> > & sv_result_stream, hls::stream<qdma_axis<32,0,0,0> > & sw_result_stream,
     struct packaged_double * output_su, struct packaged_double * output_sv, struct packaged_double * output_sw, unsigned int size_x, unsigned int size_y, unsigned int size_z) {
   unsigned int number_chunks=(size_y-4) / (MAX_Y_SIZE - 2);
   unsigned int remainder=(size_y-4) - (number_chunks * (MAX_Y_SIZE - 2));
@@ -100,12 +102,17 @@ void write_data(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REAL_TYPE> & 
     x_read_loop:
     for (unsigned int i=2;i<size_x-2;i++) {
       unsigned int start_index=(i*size_y*size_z) + (((MAX_Y_SIZE - 2) * chunk_num) * size_z);
-      write_y_and_z(in_su_stream, in_sv_stream, in_sw_stream, output_su, output_sv, output_sw, start_index, chunk_size, size_z-1);
+      write_y_and_z(su_result_stream, sv_result_stream, sw_result_stream, output_su, output_sv, output_sw, start_index, chunk_size, size_z-1);
     }
   }
 }
 
-static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REAL_TYPE> & in_sv_stream, hls::stream<REAL_TYPE> & in_sw_stream,
+static float get_float(qdma_axis<32,0,0,0> d) {
+  ap_uint<32> data=d.data;
+  return *(float*)(&data);
+}
+
+static void write_y_and_z(hls::stream<qdma_axis<32,0,0,0> > & su_result_stream, hls::stream<qdma_axis<32,0,0,0> > & sv_result_stream, hls::stream<qdma_axis<32,0,0,0> > & sw_result_stream,
     struct packaged_double * output_su, struct packaged_double * output_sv, struct packaged_double * output_sw, unsigned int start_index, unsigned int chunk_size_y, unsigned int size_z) {
   unsigned int start_point=start_index / EXTERNAL_DATA_WIDTH;
   unsigned int sp_remainder=EXTERNAL_DATA_WIDTH - (start_index - (start_point * EXTERNAL_DATA_WIDTH));
@@ -115,15 +122,15 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
 
   if (sp_remainder > 0 && sp_remainder < EXTERNAL_DATA_WIDTH) {
     struct packaged_double element_su;
-    for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) element_su.data[j]=in_su_stream.read();
+    for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) element_su.data[j]=get_float(su_result_stream.read());
     output_su[start_point]=element_su;
 
     struct packaged_double element_sv;
-    for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) element_sv.data[j]=in_sv_stream.read();
+    for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) element_sv.data[j]=get_float(sv_result_stream.read());
     output_sv[start_point]=element_sv;
 
     struct packaged_double element_sw;
-    for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) element_sw.data[j]=in_sw_stream.read();
+    for (int j=EXTERNAL_DATA_WIDTH-sp_remainder;j<EXTERNAL_DATA_WIDTH;j++) element_sw.data[j]=get_float(sw_result_stream.read());
     output_sw[start_point]=element_sw;
     start_point=start_point+1;
   }
@@ -132,15 +139,15 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
   for (unsigned int i=start_point;i<main_retrieve_part;i++) {
 #pragma HLS PIPELINE II=8
     struct packaged_double element_su;
-    for (int j=0;j<8;j++) element_su.data[j]=in_su_stream.read();
+    for (int j=0;j<8;j++) element_su.data[j]=get_float(su_result_stream.read());
     output_su[i]=element_su;
 
     struct packaged_double element_sv;
-    for (int j=0;j<8;j++) element_sv.data[j]=in_sv_stream.read();
+    for (int j=0;j<8;j++) element_sv.data[j]=get_float(sv_result_stream.read());
     output_sv[i]=element_sv;
 
     struct packaged_double element_sw;
-    for (int j=0;j<8;j++) element_sw.data[j]=in_sw_stream.read();
+    for (int j=0;j<8;j++) element_sw.data[j]=get_float(sw_result_stream.read());
     output_sw[i]=element_sw;
   }
 
@@ -149,17 +156,17 @@ static void write_y_and_z(hls::stream<REAL_TYPE> & in_su_stream, hls::stream<REA
   if (remainder > 0) {
     struct packaged_double element_su;
     remainder_u_loop:
-    for (int j=0;j<remainder;j++) element_su.data[j]=in_su_stream.read();
+    for (int j=0;j<remainder;j++) element_su.data[j]=get_float(su_result_stream.read());
     output_su[total_write]=element_su;
 
     struct packaged_double element_sv;
     remainder_v_loop:
-    for (int j=0;j<remainder;j++) element_sv.data[j]=in_sv_stream.read();
+    for (int j=0;j<remainder;j++) element_sv.data[j]=get_float(sv_result_stream.read());
     output_sv[total_write]=element_sv;
 
     struct packaged_double element_sw;
     remainder_w_loop:
-    for (int j=0;j<remainder;j++) element_sw.data[j]=in_sw_stream.read();
+    for (int j=0;j<remainder;j++) element_sw.data[j]=get_float(sw_result_stream.read());
     output_sw[total_write]=element_sw;
   }
 }
