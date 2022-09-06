@@ -2,7 +2,7 @@
 #define DEFINITIONS_HEADER
 
 #define MAX_Z_SIZE 64
-#define MAX_Y_SIZE 16
+#define MAX_Y_SIZE 260
 #define REAL_TYPE float
 
 struct stencil_data {
