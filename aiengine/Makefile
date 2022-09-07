@@ -52,7 +52,7 @@ aie_compile_x86:
 aie_simulate:
 	@echo "INFO:- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
 	@echo "INFO:Running aiesimulator..."
-	@aiesimulator --pkg-dir=./Work --profile 
+	@aiesimulator --pkg-dir=./Work --profile --online -wdb -ctf
 
 aie_simulate_x86:
 	@echo "INFO:- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
