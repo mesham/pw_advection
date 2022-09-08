@@ -17,17 +17,17 @@ public:
       cell_advection_fn_mul_2=kernel::create(cell_advection_fn_mul);
       cell_advection_fn_sub_reduce_1=kernel::create(cell_advection_fn_sub_reduce);
       
-      connect<>(in_lhs_add_1, cell_advection_fn_addition_1.in[0]);
-      connect<>(in_rhs_add_1, cell_advection_fn_addition_1.in[1]);
-      connect<>(in_lhs_add_2, cell_advection_fn_addition_2.in[0]);
-      connect<>(in_rhs_add_2, cell_advection_fn_addition_2.in[1]);
-      connect<>(in_mul_1, cell_advection_fn_mul_1.in[1]);
-      connect<>(in_mul_2, cell_advection_fn_mul_2.in[1]);
-      connect<>(cell_advection_fn_addition_1.out[0], cell_advection_fn_mul_1.in[0]);
-      connect<>(cell_advection_fn_addition_2.out[0], cell_advection_fn_mul_2.in[0]);
-      connect<>(cell_advection_fn_mul_1.out[0], cell_advection_fn_sub_reduce_1.in[0]);
-      connect<>(cell_advection_fn_mul_2.out[0], cell_advection_fn_sub_reduce_1.in[1]);
-      connect<>(cell_advection_fn_sub_reduce_1.out[0], out);
+      connect<stream>(in_lhs_add_1, cell_advection_fn_addition_1.in[0]);
+      connect<stream>(in_rhs_add_1, cell_advection_fn_addition_1.in[1]);
+      connect<stream>(in_lhs_add_2, cell_advection_fn_addition_2.in[0]);
+      connect<stream>(in_rhs_add_2, cell_advection_fn_addition_2.in[1]);
+      connect<stream>(in_mul_1, cell_advection_fn_mul_1.in[1]);
+      connect<stream>(in_mul_2, cell_advection_fn_mul_2.in[1]);
+      connect<window<128> >(cell_advection_fn_addition_1.out[0], cell_advection_fn_mul_1.in[0]);
+      connect<window<128> >(cell_advection_fn_addition_2.out[0], cell_advection_fn_mul_2.in[0]);
+      connect<window<128> >(cell_advection_fn_mul_1.out[0], cell_advection_fn_sub_reduce_1.in[0]);
+      connect<window<128> >(cell_advection_fn_mul_2.out[0], cell_advection_fn_sub_reduce_1.in[1]);
+      connect<stream>(cell_advection_fn_sub_reduce_1.out[0], out);
       
       source(cell_advection_fn_addition_1) = "kernel.cpp";
       source(cell_advection_fn_addition_2) = "kernel.cpp";

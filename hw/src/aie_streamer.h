@@ -41,10 +41,10 @@ void stream_to_aie_for_advect_u(hls::stream<struct stencil_data> & u_stencil_str
   unsigned int remainder=number_access_y - (number_chunks * MAX_Y_SIZE);
   if (remainder > 0) number_chunks++;
 
-  init_aie(size_x, size_y, size_z, u_lhs_0_stream);
-  init_aie(size_x, size_y, size_z, u_lhs_1_stream);
-  init_aie(size_x, size_y, size_z, u_mul_0_stream);
-  init_aie(size_x, size_y, size_z, u_mul_1_stream);
+  //init_aie(size_x, size_y, size_z, u_lhs_0_stream);
+  //init_aie(size_x, size_y, size_z, u_lhs_1_stream);
+  //init_aie(size_x, size_y, size_z, u_mul_0_stream);
+  //init_aie(size_x, size_y, size_z, u_mul_1_stream);
 
   chunk_loop:
   for (unsigned int chunk_num=0;chunk_num < number_chunks;chunk_num++) {
@@ -143,10 +143,10 @@ void stream_to_aie_for_advect_v(hls::stream<struct stencil_data> & u_stencil_str
   unsigned int remainder=number_access_y - (number_chunks * MAX_Y_SIZE);
   if (remainder > 0) number_chunks++;
 
-  init_aie(size_x, size_y, size_z, v_lhs_0_stream);
-  init_aie(size_x, size_y, size_z, v_lhs_1_stream);
-  init_aie(size_x, size_y, size_z, v_mul_0_stream);
-  init_aie(size_x, size_y, size_z, v_mul_1_stream);
+  //init_aie(size_x, size_y, size_z, v_lhs_0_stream);
+  //init_aie(size_x, size_y, size_z, v_lhs_1_stream);
+  //init_aie(size_x, size_y, size_z, v_mul_0_stream);
+  //init_aie(size_x, size_y, size_z, v_mul_1_stream);
 
   chunk_loop:
   for (unsigned int chunk_num=0;chunk_num < number_chunks;chunk_num++) {
@@ -245,10 +245,10 @@ void stream_to_aie_for_advect_w(hls::stream<struct stencil_data> & u_stencil_str
   unsigned int remainder=number_access_y - (number_chunks * MAX_Y_SIZE);
   if (remainder > 0) number_chunks++;
 
-  init_aie(size_x, size_y, size_z, w_lhs_0_stream);
-  init_aie(size_x, size_y, size_z, w_lhs_1_stream);
-  init_aie(size_x, size_y, size_z, w_mul_0_stream);
-  init_aie(size_x, size_y, size_z, w_mul_1_stream);
+  //init_aie(size_x, size_y, size_z, w_lhs_0_stream);
+  //init_aie(size_x, size_y, size_z, w_lhs_1_stream);
+  //init_aie(size_x, size_y, size_z, w_mul_0_stream);
+  //init_aie(size_x, size_y, size_z, w_mul_1_stream);
 
   chunk_loop:
   for (unsigned int chunk_num=0;chunk_num < number_chunks;chunk_num++) {

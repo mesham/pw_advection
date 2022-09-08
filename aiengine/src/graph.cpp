@@ -5,7 +5,7 @@ simpleGraph mygraph;
 int main(void) {
   adf::return_code ret;
   mygraph.init();
-  ret=mygraph.run(1);
+  ret=mygraph.run(-1);
   if(ret!=adf::ok){
     printf("Run failed\n");
     return ret;
