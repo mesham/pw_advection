@@ -13,16 +13,18 @@ void cell_advection_fn_addition(input_stream<float> * __restrict in_A, input_str
   chess_prepare_for_pipelining
   chess_loop_range(64,)
   {
-    aie::vector<float,8> lhs_addition_numbers, rhs_addition_numbers;    
+    aie::vector<float,4> lhs_addition_numbers_1, rhs_addition_numbers_1, lhs_addition_numbers_2, rhs_addition_numbers_2;
     
-    lhs_addition_numbers.insert(0,readincr_v<4, aie_stream_resource_in::a>(in_A));
-    lhs_addition_numbers.insert(1,readincr_v<4, aie_stream_resource_in::a>(in_A));
-      
-    rhs_addition_numbers.insert(0,readincr_v<4, aie_stream_resource_in::b>(in_B));
-    rhs_addition_numbers.insert(1,readincr_v<4, aie_stream_resource_in::b>(in_B));
+    lhs_addition_numbers_1=readincr_v<4, aie_stream_resource_in::a>(in_A);
+    rhs_addition_numbers_1=readincr_v<4, aie_stream_resource_in::b>(in_B);
+    aie::vector<float,4> vadd=aie::add(lhs_addition_numbers_1, rhs_addition_numbers_1);
+    writeincr_v8(out, vadd.grow<8>(0));
+        
+    lhs_addition_numbers_2=readincr_v<4, aie_stream_resource_in::a>(in_A);
+    rhs_addition_numbers_2=readincr_v<4, aie_stream_resource_in::b>(in_B);    
 
-    aie::vector<float,8> vadd=aie::add(lhs_addition_numbers, rhs_addition_numbers);
-    writeincr_v8(out, vadd);
+    aie::vector<float,4> vadd2=aie::add(lhs_addition_numbers_2, rhs_addition_numbers_2);
+    writeincr_v8(out, vadd2.grow<8>(0));
   }
 }
 
@@ -37,21 +39,21 @@ void cell_advection_fn_mul_sub_reduce(input_stream<accfloat> * __restrict in_A, 
   chess_prepare_for_pipelining
   chess_loop_range(64,)
   {
-    aie::vector<float,8> lhs_mul_numbers, rhs_mul_numbers;
+    aie::vector<float,4> lhs_mul_numbers_1, rhs_mul_numbers_1, lhs_mul_numbers_2, rhs_mul_numbers_2;
     
-    rhs_mul_numbers.insert(0,readincr_v<4, aie_stream_resource_in::a>(in_B));
-    rhs_mul_numbers.insert(1,readincr_v<4, aie_stream_resource_in::b>(in_B));    
+    rhs_mul_numbers_1=readincr_v<4, aie_stream_resource_in::a>(in_B);            
+    aie::vector<float,8> in1=readincr_v8(in_A);
+    lhs_mul_numbers_1=in1.extract<4>(0);
+    aie::vector<float,4> vmul_1=aie::mul(lhs_mul_numbers_1, rhs_mul_numbers_1);
     
-    lhs_mul_numbers=readincr_v8(in_A);
+    rhs_mul_numbers_2=readincr_v<4, aie_stream_resource_in::a>(in_B);
+    aie::vector<float,8> in2=readincr_v8(in_A);
+    lhs_mul_numbers_2=in2.extract<4>(0);
+    aie::vector<float,4> vmul_2=aie::mul(lhs_mul_numbers_2, rhs_mul_numbers_2);
+
+    aie::vector<float,4> vsub=aie::sub(vmul_1, vmul_2);
+    float result=aie::reduce_add(vsub);
     
-    aie::vector<float,8> vmul=aie::mul(lhs_mul_numbers, rhs_mul_numbers);
-    
-    aie::vector<float,4> lhs_sub_numbers=vmul.extract<4>(0);
-    aie::vector<float,4> rhs_sub_numbers=vmul.extract<4>(1);
-    
-    aie::vector<float,4> vsub=aie::sub(lhs_sub_numbers, rhs_sub_numbers);
-    
-    float result=aie::reduce_add(vsub); 
     writeincr<aie_stream_resource_out::a>(out, result);
   }
 }
