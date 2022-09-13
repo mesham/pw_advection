@@ -11,23 +11,20 @@
 static void advect_flow_fields(struct packaged_double*, struct packaged_double*, struct packaged_double*, struct packaged_double*, struct packaged_double*, struct packaged_double*,
     REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE],
     REAL_TYPE, REAL_TYPE, unsigned int, unsigned int, unsigned int,
-    hls::stream<qdma_axis<128,0,0,0> >&, hls::stream<qdma_axis<128,0,0,0> >&, hls::stream<qdma_axis<128,0,0,0> >&,
     hls::stream<qdma_axis<128,0,0,0> >&, hls::stream<qdma_axis<128,0,0,0> >&, hls::stream<qdma_axis<128,0,0,0> >&, hls::stream<qdma_axis<32,0,0,0> >&,
-    hls::stream<qdma_axis<128,0,0,0> >&, hls::stream<qdma_axis<128,0,0,0> >&, hls::stream<qdma_axis<128,0,0,0> >&,
     hls::stream<qdma_axis<128,0,0,0> >&, hls::stream<qdma_axis<128,0,0,0> >&, hls::stream<qdma_axis<128,0,0,0> >&, hls::stream<qdma_axis<32,0,0,0> >&,
-    hls::stream<qdma_axis<128,0,0,0> >&, hls::stream<qdma_axis<128,0,0,0> >&, hls::stream<qdma_axis<128,0,0,0> >&,
     hls::stream<qdma_axis<128,0,0,0> >&, hls::stream<qdma_axis<128,0,0,0> >&, hls::stream<qdma_axis<128,0,0,0> >&, hls::stream<qdma_axis<32,0,0,0> >&);
 static void load_constants(REAL_TYPE*, REAL_TYPE*, REAL_TYPE*, REAL_TYPE*, REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE],
     REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE], REAL_TYPE[MAX_Z_SIZE], unsigned int);
 
 extern "C" void pw_advection(struct packaged_double * u, struct packaged_double * v, struct packaged_double * w, struct packaged_double * su, struct packaged_double * sv, struct packaged_double * sw,
     REAL_TYPE * tzc1, REAL_TYPE * tzc2, REAL_TYPE * tzd1, REAL_TYPE * tzd2, REAL_TYPE tcx, REAL_TYPE tcy, unsigned int size_x, unsigned int size_y, unsigned int size_z,
-    hls::stream<qdma_axis<128,0,0,0> >& u_lhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& u_rhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& u_lhs_1_stream, hls::stream<qdma_axis<128,0,0,0> >& u_rhs_1_stream,
-    hls::stream<qdma_axis<128,0,0,0> >& u_mul_0_stream, hls::stream<qdma_axis<128,0,0,0> >& u_mul_1_stream, hls::stream<qdma_axis<32,0,0,0> >& su_result_stream,
-    hls::stream<qdma_axis<128,0,0,0> >& v_lhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& v_rhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& v_lhs_1_stream, hls::stream<qdma_axis<128,0,0,0> >& v_rhs_1_stream,
-    hls::stream<qdma_axis<128,0,0,0> >& v_mul_0_stream, hls::stream<qdma_axis<128,0,0,0> >& v_mul_1_stream, hls::stream<qdma_axis<32,0,0,0> >& sv_result_stream,
-    hls::stream<qdma_axis<128,0,0,0> >& w_lhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& w_rhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& w_lhs_1_stream, hls::stream<qdma_axis<128,0,0,0> >& w_rhs_1_stream,
-    hls::stream<qdma_axis<128,0,0,0> >& w_mul_0_stream, hls::stream<qdma_axis<128,0,0,0> >& w_mul_1_stream, hls::stream<qdma_axis<32,0,0,0> >& sw_result_stream) {
+    hls::stream<qdma_axis<128,0,0,0> >& u_lhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& u_rhs_0_stream,
+    hls::stream<qdma_axis<128,0,0,0> >& u_mul_0_stream, hls::stream<qdma_axis<32,0,0,0> >& su_result_stream,
+    hls::stream<qdma_axis<128,0,0,0> >& v_lhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& v_rhs_0_stream,
+    hls::stream<qdma_axis<128,0,0,0> >& v_mul_0_stream, hls::stream<qdma_axis<32,0,0,0> >& sv_result_stream,
+    hls::stream<qdma_axis<128,0,0,0> >& w_lhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& w_rhs_0_stream,
+    hls::stream<qdma_axis<128,0,0,0> >& w_mul_0_stream, hls::stream<qdma_axis<32,0,0,0> >& sw_result_stream) {
 #pragma HLS INTERFACE m_axi port=su offset=slave bundle=in_port
 #pragma HLS INTERFACE m_axi port=sv offset=slave bundle=in_port
 #pragma HLS INTERFACE m_axi port=sw offset=slave bundle=in_port
@@ -41,26 +38,17 @@ extern "C" void pw_advection(struct packaged_double * u, struct packaged_double 
 
 #pragma HLS INTERFACE axis port=u_lhs_0_stream
 #pragma HLS INTERFACE axis port=u_rhs_0_stream
-#pragma HLS INTERFACE axis port=u_lhs_1_stream
-#pragma HLS INTERFACE axis port=u_rhs_1_stream
 #pragma HLS INTERFACE axis port=u_mul_0_stream
-#pragma HLS INTERFACE axis port=u_mul_1_stream
 #pragma HLS INTERFACE axis port=su_result_stream
 
 #pragma HLS INTERFACE axis port=v_lhs_0_stream
 #pragma HLS INTERFACE axis port=v_rhs_0_stream
-#pragma HLS INTERFACE axis port=v_lhs_1_stream
-#pragma HLS INTERFACE axis port=v_rhs_1_stream
 #pragma HLS INTERFACE axis port=v_mul_0_stream
-#pragma HLS INTERFACE axis port=v_mul_1_stream
 #pragma HLS INTERFACE axis port=sv_result_stream
 
 #pragma HLS INTERFACE axis port=w_lhs_0_stream
 #pragma HLS INTERFACE axis port=w_rhs_0_stream
-#pragma HLS INTERFACE axis port=w_lhs_1_stream
-#pragma HLS INTERFACE axis port=w_rhs_1_stream
 #pragma HLS INTERFACE axis port=w_mul_0_stream
-#pragma HLS INTERFACE axis port=w_mul_1_stream
 #pragma HLS INTERFACE axis port=sw_result_stream
 
 #pragma HLS INTERFACE s_axilite port=su bundle=control
@@ -84,9 +72,9 @@ extern "C" void pw_advection(struct packaged_double * u, struct packaged_double 
 
   load_constants(tzc1, tzc2, tzd1, tzd2, tzc1_local_1, tzc2_local_1, tzc1_local_2, tzc2_local_2, tzd1_local, tzd2_local, size_z);
   advect_flow_fields(u, v, w, su, sv, sw, tzc1_local_1, tzc2_local_1, tzc1_local_2, tzc2_local_2, tzd1_local, tzd2_local, tcx, tcy, size_x, size_y, size_z,
-      u_lhs_0_stream, u_rhs_0_stream, u_lhs_1_stream, u_rhs_1_stream, u_mul_0_stream, u_mul_1_stream, su_result_stream,
-      v_lhs_0_stream, v_rhs_0_stream, v_lhs_1_stream, v_rhs_1_stream, v_mul_0_stream, v_mul_1_stream, sv_result_stream,
-      w_lhs_0_stream, w_rhs_0_stream, w_lhs_1_stream, w_rhs_1_stream, w_mul_0_stream, w_mul_1_stream, sw_result_stream);
+      u_lhs_0_stream, u_rhs_0_stream, u_mul_0_stream, su_result_stream,
+      v_lhs_0_stream, v_rhs_0_stream, v_mul_0_stream, sv_result_stream,
+      w_lhs_0_stream, w_rhs_0_stream, w_mul_0_stream, sw_result_stream);
 }
 
 static void advect_flow_fields(struct packaged_double * u, struct packaged_double * v, struct packaged_double * w,
@@ -94,12 +82,12 @@ static void advect_flow_fields(struct packaged_double * u, struct packaged_doubl
     REAL_TYPE tzc1_local_1[MAX_Z_SIZE], REAL_TYPE tzc2_local_1 [MAX_Z_SIZE], REAL_TYPE tzc1_local_2[MAX_Z_SIZE], REAL_TYPE tzc2_local_2[MAX_Z_SIZE],
     REAL_TYPE tzd1_local[MAX_Z_SIZE], REAL_TYPE tzd2_local[MAX_Z_SIZE],
     REAL_TYPE tcx, REAL_TYPE tcy, unsigned int size_x, unsigned int size_y, unsigned int size_z,
-    hls::stream<qdma_axis<128,0,0,0> >& u_lhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& u_rhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& u_lhs_1_stream, hls::stream<qdma_axis<128,0,0,0> >& u_rhs_1_stream,
-    hls::stream<qdma_axis<128,0,0,0> >& u_mul_0_stream, hls::stream<qdma_axis<128,0,0,0> >& u_mul_1_stream, hls::stream<qdma_axis<32,0,0,0> >& su_result_stream,
-    hls::stream<qdma_axis<128,0,0,0> >& v_lhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& v_rhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& v_lhs_1_stream, hls::stream<qdma_axis<128,0,0,0> >& v_rhs_1_stream,
-    hls::stream<qdma_axis<128,0,0,0> >& v_mul_0_stream, hls::stream<qdma_axis<128,0,0,0> >& v_mul_1_stream, hls::stream<qdma_axis<32,0,0,0> >& sv_result_stream,
-    hls::stream<qdma_axis<128,0,0,0> >& w_lhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& w_rhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& w_lhs_1_stream, hls::stream<qdma_axis<128,0,0,0> >& w_rhs_1_stream,
-    hls::stream<qdma_axis<128,0,0,0> >& w_mul_0_stream, hls::stream<qdma_axis<128,0,0,0> >& w_mul_1_stream, hls::stream<qdma_axis<32,0,0,0> >& sw_result_stream) {
+    hls::stream<qdma_axis<128,0,0,0> >& u_lhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& u_rhs_0_stream,
+    hls::stream<qdma_axis<128,0,0,0> >& u_mul_0_stream, hls::stream<qdma_axis<32,0,0,0> >& su_result_stream,
+    hls::stream<qdma_axis<128,0,0,0> >& v_lhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& v_rhs_0_stream,
+    hls::stream<qdma_axis<128,0,0,0> >& v_mul_0_stream, hls::stream<qdma_axis<32,0,0,0> >& sv_result_stream,
+    hls::stream<qdma_axis<128,0,0,0> >& w_lhs_0_stream, hls::stream<qdma_axis<128,0,0,0> >& w_rhs_0_stream,
+    hls::stream<qdma_axis<128,0,0,0> >& w_mul_0_stream, hls::stream<qdma_axis<32,0,0,0> >& sw_result_stream) {
 
   hls::stream<REAL_TYPE> u_stream("u_stream"), v_stream("v_stream"), w_stream("w_stream");
   hls::stream<struct stencil_data> stencil_u_stream("stencil_u_stream"), stencil_v_stream("stencil_v_stream"), stencil_w_stream("stencil_w_stream");
@@ -127,11 +115,11 @@ static void advect_flow_fields(struct packaged_double * u, struct packaged_doubl
   duplicateStream<struct stencil_data, 3>(stencil_w_stream, stencil_w_stream_dup, (size_x-4)*(size_y-4)*(size_z-1));
 
   stream_to_aie_for_advect_u(stencil_u_stream_dup[0], stencil_v_stream_dup[0], stencil_w_stream_dup[0], tzc1_local_1, tzc2_local_1,
-      tcx, tcy, size_x, size_y, size_z, u_lhs_0_stream, u_rhs_0_stream, u_lhs_1_stream, u_rhs_1_stream, u_mul_0_stream, u_mul_1_stream);
+      tcx, tcy, size_x, size_y, size_z, u_lhs_0_stream, u_rhs_0_stream, u_mul_0_stream);
   stream_to_aie_for_advect_v(stencil_u_stream_dup[1], stencil_v_stream_dup[1], stencil_w_stream_dup[1], tzc1_local_1, tzc2_local_1,
-      tcx, tcy, size_x, size_y, size_z, v_lhs_0_stream, v_rhs_0_stream, v_lhs_1_stream, v_rhs_1_stream, v_mul_0_stream, v_mul_1_stream);
+      tcx, tcy, size_x, size_y, size_z, v_lhs_0_stream, v_rhs_0_stream, v_mul_0_stream);
   stream_to_aie_for_advect_w(stencil_u_stream_dup[2], stencil_v_stream_dup[2], stencil_w_stream_dup[2], tzc1_local_1, tzc2_local_1,
-      tcx, tcy, size_x, size_y, size_z, w_lhs_0_stream, w_rhs_0_stream, w_lhs_1_stream, w_rhs_1_stream, w_mul_0_stream, w_mul_1_stream);
+      tcx, tcy, size_x, size_y, size_z, w_lhs_0_stream, w_rhs_0_stream, w_mul_0_stream);
 
   write_data(su_result_stream, sv_result_stream, sw_result_stream, su, sv, sw, size_x, size_y, size_z);
 }
